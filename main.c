@@ -20,6 +20,8 @@ int main() {
     extract_robj("scenes/render.map", &ext_spheres, &sphere_num, &ext_planes, &plane_num,
                     &ext_lights, &light_num);
     
+    png_dump("out/scene.png", rays, 800, 600);
+
     free(ext_spheres);
     free(ext_planes);
     free(ext_lights);

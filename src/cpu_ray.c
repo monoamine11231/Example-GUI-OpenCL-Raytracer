@@ -1,6 +1,7 @@
 #include <math.h>
 #include <float.h>
 #include <stdbool.h>
+#include <png.h>
 #include "cpu_ray.h"
 
 
@@ -51,8 +52,9 @@ rray* rgen_rays(rcamera* camera, cl_int pwidth, cl_int pheight) {
     rray *rays;
     cl_float3 tmp_top, forward, left, up, image_center, image_lt_corner;
     cl_float half_radians_fov, aspect_ratio, fov_tan, image_width, image_height,
-            w_factor, h_factor;
+             w_factor, h_factor;
     bool is_180;
+
 
 
     rays                = malloc(sizeof(rray) * pwidth * pheight);
@@ -118,7 +120,7 @@ rray* rgen_rays(rcamera* camera, cl_int pwidth, cl_int pheight) {
             ray.dir = normalize(vec);
             ray.origin = camera->pos_dir.origin;
             /* Black background on the scene */
-            ray.rgb = (cl_float3){.x = 0.0f, .y = 0.0f, .z = 0.0f};
+            ray.rgb = (cl_float3){.x = 0.0f, .y = 0.0f, .z = 1.0f};
 
             /* Add the constructed ray to the linear list */
             rays[h*pwidth+w] = ray;
@@ -126,4 +128,63 @@ rray* rgen_rays(rcamera* camera, cl_int pwidth, cl_int pheight) {
     }
 
     return rays;
+}
+
+int png_dump(const char* filename, rray* rays, cl_int pwidth, cl_int pheight) {
+    FILE* fp;
+    png_structp png_ptr     = NULL;
+    png_infop info_ptr      = NULL;
+    png_byte **row_pointers = NULL;
+
+    fp = fopen(filename, "wb");
+    if (!fp) {
+        return 0;
+    }
+
+    png_ptr = png_create_write_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (!png_ptr) {
+        return 0;
+    }
+
+    info_ptr = png_create_info_struct (png_ptr);
+    if (!info_ptr) {
+        return 0;
+    }
+
+    /* PNG information header, set rgb mode and pixel depth of 8 bits */
+    png_set_IHDR(png_ptr,
+                 info_ptr,
+                 pwidth,
+                 pheight,
+                 8,
+                 PNG_COLOR_TYPE_RGB,
+                 PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_DEFAULT,
+                 PNG_FILTER_TYPE_DEFAULT);
+
+    /* Dump the rays rgb values as bytes into the png buffer */
+    row_pointers = png_malloc (png_ptr, pheight * sizeof (png_byte *));
+    for (int r = 0; r < pheight; r++) {
+        png_byte* row = png_malloc(png_ptr, pwidth * 3);
+        row_pointers[r] = row;
+
+        for (int c = 0; c < pwidth; c++) {
+            *row++ = (uint8_t)rays[r*pwidth+c].rgb.x * 255;
+            *row++ = (uint8_t)rays[r*pwidth+c].rgb.y * 255;
+            *row++ = (uint8_t)rays[r*pwidth+c].rgb.z * 255;
+        }
+    }
+
+    png_init_io(png_ptr, fp);
+    png_set_rows(png_ptr, info_ptr, row_pointers);
+    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
+    for (int r = 0; r < pheight; r++) {
+        png_free(png_ptr, row_pointers[r]);
+    }
+
+    png_free(png_ptr, row_pointers);
+
+    fclose(fp);
+    return 1;
 }

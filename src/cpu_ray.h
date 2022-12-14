@@ -25,5 +25,6 @@ rcamera     rinit_camera(cl_float3 camera_origin, cl_float3 camera_lookdir,
                          cl_float fov, cl_float focal_length);
 void        rlookat(rcamera *camera, cl_float3 dir);
 
-rray*  rgen_rays(rcamera* camera, cl_int pwidth, cl_int pheight);
+rray*       rgen_rays(rcamera* camera, cl_int pwidth, cl_int pheight);
 
+int         png_dump(const char* filename, rray* rays, cl_int pwidth, cl_int pheight);
