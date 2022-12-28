@@ -6,33 +6,50 @@
 
 
 #pragma scalar_storage_order little-endian
-struct __rsphere {
-    cl_float3   origin;
-    cl_float    radius;
+struct __rmaterial {
+    cl_float3           rgb;
 
-    cl_float3   rgb;
+    cl_float            ambient;
+    cl_float            diffuse;
+    cl_float            specular;
+    cl_uint             shininess;
+    
+    cl_bool             transperent;
+    cl_float            fresnel;
+} __attribute__((packed));
+
+struct __rsphere {
+    cl_float3           origin;
+    cl_float            radius;
+
+    struct __rmaterial  material;
 } __attribute__((packed));
 
 struct __rplane {
-    cl_float3   normal;
-    cl_float3   point_in_plane;
+    cl_float3           normal;
+    cl_float3           point_in_plane;
 
-    cl_float3   rgb;
+    struct __rmaterial  material;
 } __attribute__((packed));
 
 /* Light objects are spheres */
 struct __rlight {
-    cl_float3   origin;
-    cl_float    radius;
-    cl_float    intensity;
+    cl_float3           origin;
+    cl_float            radius;
+    cl_float            intensity;
 
-    cl_float3   rgb;   
+    cl_float3           rgb;   
 } __attribute__((packed));
 #pragma scalar_storage_order default
 
+typedef struct __rmaterial  rmaterial;
 typedef struct __rsphere    rsphere;
 typedef struct __rplane     rplane;
 typedef struct __rlight     rlight;
+
+extern const rmaterial      plastic;
+extern const rmaterial      mirror;
+
 
 /* Have written some archive protocol to store everything in the same file */
 /* Dumps all the data to the same file */

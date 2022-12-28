@@ -10,7 +10,8 @@ project(ray
 add_executable(ray
     main.c
     src/cpu_ray.c
-    src/cpu_obj.c)
+    src/cpu_obj.c
+    src/opencl_wrap.c)
 
 add_compile_definitions(CL_TARGET_OPENCL_VERSION=300)
 target_compile_options(ray PRIVATE -Isrc/ -Wall -Wextra -g)

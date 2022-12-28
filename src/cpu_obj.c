@@ -2,6 +2,25 @@
 #include "cpu_obj.h"
 
 
+const rmaterial plastic = { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f},
+
+                            .ambient        = 0.3,
+                            .diffuse        = 0.5,
+                            .specular       = 0.4,
+                            .shininess      = 3,
+
+                            .transperent    = CL_FALSE,
+                            .fresnel        = 0.2, };
+
+const rmaterial mirror = {  .rgb            = (cl_float3){.x = 0.0f, .y = 0.0f, .z = 0.0f},
+                            .ambient        = 0.0f,
+                            .diffuse        = 0.0f,
+                            .specular       = 0.0f,
+                            .shininess      = 0.0f,
+
+                            .transperent    = CL_FALSE,
+                            .fresnel        = 1.0f, };
+
 int dump_robj(const char* filename, rsphere* rspheres, uint8_t rsphere_num,
                 rplane* rplanes, uint8_t rplane_num, rlight* rlights,
                 uint8_t rlight_num) {

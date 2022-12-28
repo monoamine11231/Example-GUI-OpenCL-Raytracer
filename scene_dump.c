@@ -8,20 +8,21 @@ int main() {
     rsphere spheres[2];
     spheres[0].origin       =   (cl_float3){.x = 1.5f, .y = 1.0f, .z = 3.0f};
     spheres[0].radius       =   1.0f;
-    spheres[0].rgb          =   (cl_float3){.x = 1.0f, .y = 0.0f, .z = 0.0f};
+    spheres[0].material     =   plastic;
 
     spheres[1].origin       =   (cl_float3){.x = -3.0f, .y = 2.0f, .z = 4.5f};
     spheres[1].radius       =   2.0f;
-    spheres[1].rgb          =   (cl_float3){.x = 0.0f, .y = 0.0f, .z = 1.0f};
+    spheres[1].material     =   plastic;
 
     rplane planes[2];
     planes[0].point_in_plane=   (cl_float3){.x = 0.0f, .y = 0.0f, .z = 0.0f};
     planes[0].normal        =   (cl_float3){.x = 0.0f, .y = 1.0f, .z = 0.0f};
-    planes[0].rgb           =   (cl_float3){.x = 0.5f, .y = 0.5f, .z = 0.5f};
+    planes[0].material      =   mirror;
 
     planes[1].point_in_plane=   (cl_float3){.x = 0.0f, .y = 0.0f, .z = 7.0f};
     planes[1].normal        =   (cl_float3){.x = 0.0f, .y = 0.0f, .z = -1.0f};
-    planes[1].rgb           =   (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f};
+    planes[1].material      =   plastic;
+
 
     /* Light yellow light source*/
     rlight light1;
