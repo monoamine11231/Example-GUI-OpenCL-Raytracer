@@ -4,6 +4,9 @@
 #include "cpu_obj.h"
 
 
+#define WIDTH 2000
+#define HEIGHT 1000
+
 int main() {
     rcamera camera = rinit_camera(
         (cl_float3){.x = 0.0f, .y = 1.0f, .z = 0.0f},
@@ -11,7 +14,7 @@ int main() {
         90.0f, 1.0f
     );
 
-    rray* rays = rgen_rays(&camera, 800, 600);
+    rray* rays = rgen_rays(&camera, WIDTH, HEIGHT);
 
     uint8_t sphere_num, plane_num, light_num;
     rsphere *ext_spheres;
@@ -20,28 +23,27 @@ int main() {
 
     extract_robj("scenes/render.map", &ext_spheres, &sphere_num, &ext_planes, &plane_num,
                     &ext_lights, &light_num);
-    
-    // const int ARRAY_SIZE = 2048;
-    // cl_float arr[ARRAY_SIZE];
-    // for (int i = 0; i < ARRAY_SIZE; i++) {
-    //     arr[i] = 1.0f*i;
-    // }
 
-    // cl_float out[ARRAY_SIZE];
+    cl_wrap cl;
+    cl_wrap_init(&cl, CL_DEVICE_TYPE_GPU, "src/raytracing.cl");
+    size_t total_size = sizeof(rray)*WIDTH*HEIGHT;
 
-    // cl_wrap cl;
-    // cl_wrap_init(&cl, CL_DEVICE_TYPE_GPU, "test.cl");
-    // cl_wrap_load_global_data(&cl, 0, &arr[0], ARRAY_SIZE*sizeof(cl_float), CL_MEM_READ_ONLY);
-    // cl_wrap_load_global_data(&cl, 1, NULL, ARRAY_SIZE*sizeof(cl_float), CL_MEM_WRITE_ONLY);
-    // cl_wrap_load_single_data(&cl, 2, &ARRAY_SIZE, sizeof(const int));
-    // cl_wrap_output(&cl, ARRAY_SIZE*sizeof(cl_float), ARRAY_SIZE*sizeof(cl_float), 1, &out[0]);
-    // cl_wrap_release(&cl);
+    cl_wrap_load_global_data(&cl, 0, rays, total_size, CL_MEM_READ_ONLY);
+    cl_wrap_load_global_data(&cl, 1, NULL, total_size, CL_MEM_WRITE_ONLY);
+    cl_wrap_load_global_data(&cl, 2, ext_spheres, sizeof(rsphere)*sphere_num, 
+                             CL_MEM_READ_ONLY);
+    cl_wrap_load_global_data(&cl, 3, ext_planes, sizeof(rplane)*plane_num, 
+                             CL_MEM_READ_ONLY);
+    cl_wrap_load_global_data(&cl, 4, ext_lights, sizeof(rlight)*light_num, 
+                             CL_MEM_READ_ONLY);
+    cl_wrap_load_single_data(&cl, 5, &sphere_num, sizeof(uint8_t));
+    cl_wrap_load_single_data(&cl, 6, &plane_num, sizeof(uint8_t));
+    cl_wrap_load_single_data(&cl, 7, &light_num, sizeof(uint8_t));
+    rray* test = malloc(sizeof(rray)*WIDTH*HEIGHT);
+    cl_wrap_output(&cl, WIDTH*HEIGHT, total_size, 1, test);
+    cl_wrap_release(&cl);
 
-    // for (int i = 0; i < ARRAY_SIZE; i++) {
-    //     printf("%f\n", out[i]);
-    // }
-
-    // png_dump("out/scene.png", rays, 800, 600);
+    png_dump("out/scene.png", test, WIDTH, HEIGHT);
 
     free(ext_spheres);
     free(ext_planes);

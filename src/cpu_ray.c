@@ -50,7 +50,7 @@ void rlookat(rcamera *camera, cl_float3 dir) {
 
 rray* rgen_rays(rcamera* camera, cl_int pwidth, cl_int pheight) {
     rray *rays;
-    cl_float3 tmp_top, forward, left, up, image_center, image_lt_corner;
+    cl_float3 tmp_top, forward, right, up, image_center, image_lt_corner;
     cl_float half_radians_fov, aspect_ratio, fov_tan, image_width, image_height,
              w_factor, h_factor;
     bool is_180;
@@ -80,30 +80,33 @@ rray* rgen_rays(rcamera* camera, cl_int pwidth, cl_int pheight) {
 
     /* It is normalized */
     forward             = camera->pos_dir.dir;
+    forward.x           *= -1.0f;
+    forward.y           *= -1.0f;
+    forward.z           *= -1.0f;
 
     /* Manual cross-product to construct the orthogonal unit vectors needed */
-    left               = (cl_float3){
+    right               = (cl_float3){
                             .x = tmp_top.y*forward.z-tmp_top.z*forward.y,
                             .y = tmp_top.z*forward.x-tmp_top.x*forward.z,
                             .z = tmp_top.x*forward.y-tmp_top.y*forward.x
                         };
     up                  = (cl_float3){
-                            .x = forward.y*left.z-forward.z*left.y,
-                            .y = forward.z*left.x-forward.x*left.z,
-                            .z = forward.x*left.y-forward.y*left.x
+                            .x = forward.y*right.z-forward.z*right.y,
+                            .y = forward.z*right.x-forward.x*right.z,
+                            .z = forward.x*right.y-forward.y*right.x
                         };
 
 
     image_center        = (cl_float3){
-                            .x = forward.x*camera->focal_length-camera->pos_dir.origin.x,
-                            .y = forward.y*camera->focal_length-camera->pos_dir.origin.y,
-                            .z = forward.z*camera->focal_length-camera->pos_dir.origin.z
+                            .x = -forward.x*camera->focal_length,
+                            .y = -forward.y*camera->focal_length,
+                            .z = -forward.z*camera->focal_length
                         };
     /* Vector pointing to the left top corner of the image */
     image_lt_corner     = (cl_float3){
-                            .x = image_center.x+left.x*image_width/2+up.x*image_height/2,
-                            .y = image_center.y+left.y*image_width/2+up.y*image_height/2,
-                            .z = image_center.z+left.z*image_width/2+up.z*image_height/2
+                            .x = image_center.x-right.x*image_width/2+up.x*image_height/2,
+                            .y = image_center.y-right.y*image_width/2+up.y*image_height/2,
+                            .z = image_center.z-right.z*image_width/2+up.z*image_height/2
                         };
 
     /* For every pixel cast a ray given the vector pointing to the pixel */
@@ -111,10 +114,13 @@ rray* rgen_rays(rcamera* camera, cl_int pwidth, cl_int pheight) {
         for (int h = 0; h < pheight; h++) {
             rray ray;
 
+            cl_float rand_w = 1;
+            cl_float rand_h = 1;
+
             cl_float3 vec;
-            vec.x = image_lt_corner.x-left.x*w_factor*w-up.x*h_factor*h;
-            vec.y = image_lt_corner.y-left.y*w_factor*w-up.y*h_factor*h;
-            vec.z = image_lt_corner.z-left.z*w_factor*w-up.z*h_factor*h;
+            vec.x = image_lt_corner.x+right.x*w_factor*w*rand_w-up.x*h_factor*h*rand_h;
+            vec.y = image_lt_corner.y+right.y*w_factor*w*rand_w-up.y*h_factor*h*rand_h;
+            vec.z = image_lt_corner.z+right.z*w_factor*w*rand_w-up.z*h_factor*h*rand_h;
 
             ray.depth = 0;
             ray.dir = normalize(vec);

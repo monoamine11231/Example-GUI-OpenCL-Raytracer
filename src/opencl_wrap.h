@@ -28,6 +28,6 @@ void cl_wrap_load_global_data(cl_wrap* wrap, cl_uint arg_id, const void* data,
 void cl_wrap_load_single_data(cl_wrap* wrap, cl_uint arg_id, const void* data,
                               size_t obj_size);
 /* Runs the kernel and outputs the result to host */
-void cl_wrap_output(cl_wrap* wrap, size_t main_size, size_t output_size, cl_int arg_id,
+void cl_wrap_output(cl_wrap* wrap, size_t array_size, size_t output_size, cl_int arg_id,
                     void* host_output);
 void cl_wrap_release(cl_wrap* wrap);

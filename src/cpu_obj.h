@@ -6,6 +6,7 @@
 
 
 #pragma scalar_storage_order little-endian
+#pragma pack(push, 1)
 struct __rmaterial {
     cl_float3           rgb;
 
@@ -16,21 +17,21 @@ struct __rmaterial {
     
     cl_bool             transperent;
     cl_float            fresnel;
-} __attribute__((packed));
+};
 
 struct __rsphere {
     cl_float3           origin;
     cl_float            radius;
 
     struct __rmaterial  material;
-} __attribute__((packed));
+};
 
 struct __rplane {
     cl_float3           normal;
     cl_float3           point_in_plane;
 
     struct __rmaterial  material;
-} __attribute__((packed));
+};
 
 /* Light objects are spheres */
 struct __rlight {
@@ -39,7 +40,8 @@ struct __rlight {
     cl_float            intensity;
 
     cl_float3           rgb;   
-} __attribute__((packed));
+};
+#pragma pack(pop)
 #pragma scalar_storage_order default
 
 typedef struct __rmaterial  rmaterial;
