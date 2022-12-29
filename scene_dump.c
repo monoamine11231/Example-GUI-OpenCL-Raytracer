@@ -6,13 +6,13 @@
 int main() {
     /* Red sphere and blue sphere*/
     rsphere spheres[2];
-    spheres[0].origin       =   (cl_float3){.x = 2.5f, .y = 1.0f, .z = 3.0f};
+    spheres[0].origin       =   (cl_float3){.x = 4.5f, .y = 1.0f, .z = 3.0f};
     spheres[0].radius       =   0.5f;
     spheres[0].material     =   plastic;
     spheres[0].material.rgb =   (cl_float3){.x = 1.0f, .y = 0.0f, .z = 0.0f};
 
 
-    spheres[1].origin       =   (cl_float3){.x = 1.0f, .y = 2.0f, .z = 4.5f};
+    spheres[1].origin       =   (cl_float3){.x = -1.0f, .y = 2.0f, .z = 4.5f};
     spheres[1].radius       =   0.8f;
     spheres[1].material     =   plastic;
     spheres[1].material.rgb =   (cl_float3){.x = 0.0f, .y = 0.0f, .z = 1.0f};
@@ -27,14 +27,14 @@ int main() {
     planes[0].material.shininess = 100;
 
 
-    planes[1].point_in_plane=   (cl_float3){.x = 0.0f, .y = 0.0f, .z = 6.0f};
+    planes[1].point_in_plane=   (cl_float3){.x = 0.0f, .y = 0.0f, .z = 10.0f};
     planes[1].normal        =   (cl_float3){.x = 0.0f, .y = 0.0f, .z = -1.0f};
     planes[1].material      =   mirror;
 
 
     /* Light yellow light source*/
     rlight lights[2];
-    lights[0].origin           =   (cl_float3){.x = 0.0f, .y = 2.0f, .z = 1.0f};
+    lights[0].origin           =   (cl_float3){.x = 0.0f, .y = 2.0f, .z = 2.0f};
     lights[0].intensity        =   2.0f;
     lights[0].radius           =   0.0f;
     lights[0].rgb              =   (cl_float3){.x = 1.0f, .y = 1.0f, .z = 0.4f};

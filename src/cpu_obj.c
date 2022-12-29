@@ -4,13 +4,13 @@
 
 const rmaterial plastic = { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f},
 
-                            .ambient        = 0.20,
+                            .ambient        = 0.15,
                             .diffuse        = 0.6,
                             .specular       = 0.6,
-                            .shininess      = 50,
+                            .shininess      = 10,
 
                             .transperent    = CL_FALSE,
-                            .fresnel        = 0.8, };
+                            .fresnel        = 0.8f, };
 
 const rmaterial mirror = {  .rgb            = (cl_float3){.x = 0.2f, .y = 0.2f, .z = 0.2f},
                             .ambient        = 0.3f,

@@ -10,7 +10,7 @@
 int main() {
     rcamera camera = rinit_camera(
         (cl_float3){.x = 0.0f, .y = 1.0f, .z = -1.0f},
-        (cl_float3){.x = 0.0f, .y = 0.0f, .z = 1.0f},
+        (cl_float3){.x = 0.0f, .y = -0.0f, .z = 1.0f},
         120.0f, 1.0f
     );
 

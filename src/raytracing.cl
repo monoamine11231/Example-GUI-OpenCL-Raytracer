@@ -68,7 +68,7 @@ bool intersect_sphere(rray *ray, float3* sphere_origin, float sphere_radius, flo
     float   D = b*b-4*a*c;
 
     /* No intersection */
-    if (D < 0 || (-b+D)/(2*a) < 0) {
+    if (D < 0) {
         return false;
     }
     D = sqrt(D);
@@ -76,7 +76,9 @@ bool intersect_sphere(rray *ray, float3* sphere_origin, float sphere_radius, flo
     /* If the closest intersection is behind the camera, replace it with the
         farthest */
     t2 = ((-b-D)/(2*a) < 0) ? (-b+D)/(2*a) : (-b-D)/(2*a);
-
+    if (t2 <= 0) {
+        return false;
+    }
     *t = t2;
     return true;
 }
@@ -94,7 +96,7 @@ bool intersect_plane(rray *ray, float3* plane_normal, float3* point_in_plane, fl
 
     
     t2 = dot(((*point_in_plane)-ray->origin), *plane_normal)/b;
-    if (t2 < 0) {
+    if (t2 <= 0) {
         return false;
     }
     *t = t2;
