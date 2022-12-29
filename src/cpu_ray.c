@@ -6,23 +6,12 @@
 
 
 static cl_float3 normalize(cl_float3 vec) {
-    float number = vec.x*vec.x+vec.y*vec.y+vec.z*vec.z;
-    /* Quake III fast reversed square root algorithm */
-    long i;
-    float x2, y;
-    const float thrhalfs = 1.5f;
+    float number = 1/sqrt(vec.x*vec.x+vec.y*vec.y+vec.z*vec.z);
 
-    x2 = number * 0.5f;
-    y = number;
-    i = *(long*)&y;
-    i = 0x5f3759df - (i >> 1);
-    y = *(float*)&i;
-    y = y * ( thrhalfs - ( x2 * y * y ) );
-
-    cl_float3 res = vec;
-    res.x *= y;
-    res.y *= y;
-    res.z *= y;
+    cl_float3 res;
+    res.x = vec.x*number;
+    res.y = vec.y*number;
+    res.z = vec.z*number;
 
     return res;
 }
@@ -175,9 +164,9 @@ int png_dump(const char* filename, rray* rays, cl_int pwidth, cl_int pheight) {
         row_pointers[r] = row;
 
         for (int c = 0; c < pwidth; c++) {
-            *row++ = (uint8_t)rays[r*pwidth+c].rgb.x * 255;
-            *row++ = (uint8_t)rays[r*pwidth+c].rgb.y * 255;
-            *row++ = (uint8_t)rays[r*pwidth+c].rgb.z * 255;
+            *row++ = (uint8_t)(rays[r*pwidth+c].rgb.x * 255.0f);
+            *row++ = (uint8_t)(rays[r*pwidth+c].rgb.y * 255.0f);
+            *row++ = (uint8_t)(rays[r*pwidth+c].rgb.z * 255.0f);
         }
     }
 
