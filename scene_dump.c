@@ -31,7 +31,7 @@ int main() {
 
     /* Light yellow light source*/
     rlight light1;
-    light1.origin           =   (cl_float3){.x = 1.0f, .y = 2.5f, .z = 5.5f};
+    light1.origin           =   (cl_float3){.x = 3.0f, .y = 2.0f, .z = 5.0f};
     light1.intensity        =   1.0f;
     light1.radius           =   0.3f;
     light1.rgb              =   (cl_float3){.x = 1.0f, .y = 1.0f, .z = 0.4f};

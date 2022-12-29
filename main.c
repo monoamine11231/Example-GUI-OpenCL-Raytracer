@@ -4,8 +4,8 @@
 #include "cpu_obj.h"
 
 
-#define WIDTH 2000
-#define HEIGHT 1000
+#define WIDTH 800
+#define HEIGHT 600
 
 int main() {
     rcamera camera = rinit_camera(

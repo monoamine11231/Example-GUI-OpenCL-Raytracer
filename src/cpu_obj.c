@@ -4,7 +4,7 @@
 
 const rmaterial plastic = { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f},
 
-                            .ambient        = 0.3,
+                            .ambient        = 0.4,
                             .diffuse        = 0.5,
                             .specular       = 0.4,
                             .shininess      = 3,
