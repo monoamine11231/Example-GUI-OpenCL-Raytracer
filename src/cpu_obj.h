@@ -17,6 +17,7 @@ struct __rmaterial {
     
     cl_bool             transperent;
     cl_float            fresnel;
+    cl_float            reflectivity;
 };
 
 struct __rsphere {

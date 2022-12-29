@@ -8,6 +8,7 @@ struct __rmaterial {
     
     uint                transperent;
     float               fresnel;
+    float               reflectivity;
 } __attribute__((packed));
 
 struct __rsphere {
@@ -53,7 +54,7 @@ typedef struct __rray rray;
 
 #define MAX_DEPTH 5
 /* To avoid self shadow, we add the normal * EPSILON to the intersection */
-#define EPSILON 0.01f
+#define EPSILON 0.1f
 #define INVERSE_SQUARE_LIGHT 1.0f
 
 bool intersect_sphere(rray *ray, float3* sphere_origin, float sphere_radius, float* t) {
@@ -242,7 +243,7 @@ __kernel void raytracer(__global rray* rays, __global rray* output,
         if (intersect == 2) {
             break;
         }
-        float3 new_dir = ray.dir - 2*dot(normal, ray.dir)*normal;
+        float3 new_dir = normalize(ray.dir - 2*dot(normal, ray.dir)*normal);
         output[id].rgb += f* material.rgb * material.ambient;
 
         /* Calculate direct illumination on non light objects */
@@ -265,8 +266,9 @@ __kernel void raytracer(__global rray* rays, __global rray* output,
 
             float light_distance = distance(light.origin, intersection);
             float obj_distance   = distance(light_intersection, intersection);
-            if (light_intersect != 0 && obj_distance < light_distance) { continue; }
-
+            if (light_intersect != 0 && obj_distance < light_distance) {
+                continue;
+            }
             float d = light_distance;
             float3 light_rgb = light.rgb*light.intensity*INVERSE_SQUARE_LIGHT*1/(d*d);
 
@@ -283,13 +285,24 @@ __kernel void raytracer(__global rray* rays, __global rray* output,
             float3 diff_f = max(0.0f, dot(normal, shadow_ray.dir));
             output[id].rgb += f*material.diffuse*light_rgb*diff_f;
         }
-        f*= material.fresnel+(1-material.fresnel)*pow((dot(normal, ray.dir)), 5.0f);
-        //f *= 0.3;
+
+        /* WHY DID I HAVE TO FIND MYSELF THAT THE DOT PRODUCT MUST BE SIGN FLIPPED */
+        float fr = material.fresnel+(1-material.fresnel)*pow(-dot(normal,ray.dir),5.0f);
+
+        /* Previously dark pixel on 800x600 */
+        if (id == 305742) {   
+        }
+        f*= material.reflectivity+(1.0f-material.reflectivity)*fr;
+
         ray.dir = new_dir;
         ray.origin = intersection;
         ray.depth++;
 
 
     }
+
     output[id].rgb = clamp(output[id].rgb, 0.0f, 1.0f);
+    if (output[id].rgb.x < 0.04f && output[id].rgb.y == 0.0f && output[id].rgb.z == 0.0f) {
+        printf("%i\n", id);
+    }
 }

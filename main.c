@@ -4,13 +4,13 @@
 #include "cpu_obj.h"
 
 
-#define WIDTH 2000
-#define HEIGHT 1000
+#define WIDTH 800
+#define HEIGHT 600
 
 int main() {
     rcamera camera = rinit_camera(
-        (cl_float3){.x = 0.0f, .y = 1.0f, .z = -1.0f},
-        (cl_float3){.x = 0.0f, .y = -0.0f, .z = 1.0f},
+        (cl_float3){.x = 0.8f, .y = 2.0f, .z = 0.0f},
+        (cl_float3){.x = 0.0f, .y = -0.2f, .z = 1.0f},
         120.0f, 1.0f
     );
 

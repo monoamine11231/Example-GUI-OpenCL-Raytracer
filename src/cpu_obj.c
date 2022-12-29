@@ -4,13 +4,14 @@
 
 const rmaterial plastic = { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f},
 
-                            .ambient        = 0.15,
-                            .diffuse        = 0.6,
-                            .specular       = 0.6,
+                            .ambient        = 0.2f,
+                            .diffuse        = 0.6f,
+                            .specular       = 0.6f,
                             .shininess      = 10,
 
                             .transperent    = CL_FALSE,
-                            .fresnel        = 0.8f, };
+                            .fresnel        = 0.17f,
+                            .reflectivity   = 0.2f };
 
 const rmaterial mirror = {  .rgb            = (cl_float3){.x = 0.2f, .y = 0.2f, .z = 0.2f},
                             .ambient        = 0.3f,
@@ -19,7 +20,8 @@ const rmaterial mirror = {  .rgb            = (cl_float3){.x = 0.2f, .y = 0.2f, 
                             .shininess      = 100.0f,
 
                             .transperent    = CL_FALSE,
-                            .fresnel        = 1.0f, };
+                            .fresnel        = 1.0f,
+                            .reflectivity   = 1.0f, };
 
 int dump_robj(const char* filename, rsphere* rspheres, uint8_t rsphere_num,
                 rplane* rplanes, uint8_t rplane_num, rlight* rlights,

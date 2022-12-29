@@ -23,19 +23,20 @@ int main() {
     planes[0].normal        =   (cl_float3){.x = 0.0f, .y = 1.0f, .z = 0.0f};
     planes[0].material      =   plastic;
     planes[0].material.rgb  =   (cl_float3){.x = 0.5f, .y = 0.0f, .z = 0.5f};
-    planes[0].material.ambient = 0.2;
-    planes[0].material.shininess = 100;
 
-
-    planes[1].point_in_plane=   (cl_float3){.x = 0.0f, .y = 0.0f, .z = 10.0f};
+    planes[1].point_in_plane=   (cl_float3){.x = 0.0f, .y = 0.0f, .z = 7.0f};
     planes[1].normal        =   (cl_float3){.x = 0.0f, .y = 0.0f, .z = -1.0f};
     planes[1].material      =   mirror;
+    planes[1].material.ambient = 0.3;
+    planes[1].material.shininess = 50;
+    planes[1].material.specular = 0.7f;
+    planes[1].material.rgb  =   (cl_float3){.x = 0.3f, .y = 0.3f, .z = 0.3f};
 
 
     /* Light yellow light source*/
     rlight lights[2];
-    lights[0].origin           =   (cl_float3){.x = 0.0f, .y = 2.0f, .z = 2.0f};
-    lights[0].intensity        =   2.0f;
+    lights[0].origin           =   (cl_float3){.x = 0.0f, .y = 1.0f, .z = 2.0f};
+    lights[0].intensity        =   1.0f;
     lights[0].radius           =   0.0f;
     lights[0].rgb              =   (cl_float3){.x = 1.0f, .y = 1.0f, .z = 0.4f};
 
