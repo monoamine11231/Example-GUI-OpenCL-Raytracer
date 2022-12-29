@@ -8,11 +8,12 @@
 static cl_float3 normalize(cl_float3 vec) {
     float number = 1/sqrt(vec.x*vec.x+vec.y*vec.y+vec.z*vec.z);
 
+
     cl_float3 res;
     res.x = vec.x*number;
     res.y = vec.y*number;
     res.z = vec.z*number;
-
+    
     return res;
 }
 

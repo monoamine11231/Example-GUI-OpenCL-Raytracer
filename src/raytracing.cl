@@ -53,8 +53,8 @@ typedef struct __rray rray;
 
 #define MAX_DEPTH 5
 /* To avoid self shadow, we add the normal * EPSILON to the intersection */
-#define EPSILON 0.003f
-#define INVERSE_SQUARE_LIGHT (M_1_PI_F/4)
+#define EPSILON 0.01f
+#define INVERSE_SQUARE_LIGHT 1.0f
 
 bool intersect_sphere(rray *ray, float3* sphere_origin, float sphere_radius, float* t) {
 
@@ -165,7 +165,7 @@ uint findIntersection(rray *ray,
         hit_light = false;
     }
 
-    /* Find closest intersection with spheres */
+    /*
     for (uchar i = 0; i < light_num; i++) {
         rlight light = lights[i];
 
@@ -179,13 +179,16 @@ uint findIntersection(rray *ray,
 
         interpoint = ray->origin+ray->dir*t;
         target_normal = normalize(interpoint-light.origin);
-        /* To avoid self shadow */
+
+
         interpoint += target_normal*EPSILON;
+
 
         light_color = light.rgb*light.intensity*INVERSE_SQUARE_LIGHT*1/(light.radius*light.radius);
         did_intersect = true;
         hit_light = true;
     }
+    */
 
     if (!did_intersect) { return 0; }
 
@@ -211,30 +214,80 @@ uint findIntersection(rray *ray,
 __kernel void raytracer(__global rray* rays, __global rray* output,
                         __global rsphere* spheres,
                         __global rplane* planes, __global rlight* lights,
-                        uchar spheres_num, uchar planes_num, uchar light_num  ) {
+                        uchar spheres_num, uchar planes_num, uchar light_num,
+                        uint total_size ) {
 
     uint id = get_global_id(0);
+    if (id >= total_size) {
+        return;
+    }
     rray ray = rays[id];
+
+    float f = 1.0f;
     
     while (ray.depth < MAX_DEPTH) {
         float3 intersection;
         float3 normal;
         rmaterial material;
-        bool intersect = findIntersection(&ray, spheres, planes, lights, spheres_num,
+        uint intersect = findIntersection(&ray, spheres, planes, lights, spheres_num,
                                           planes_num, light_num, &intersection, &normal,
                                           &material);
 
+        if (!intersect) {   
+            break;
+        }
 
-        if (!intersect) { return; }
-
-        output[id].rgb += material.rgb * material.ambient;
-
+        if (intersect == 2) {
+            break;
+        }
         float3 new_dir = ray.dir - 2*dot(normal, ray.dir)*normal;
+        output[id].rgb += f* material.rgb * material.ambient;
+
+        /* Calculate direct illumination on non light objects */
+        for(uchar i = 0; i < light_num; i++) {
+            rlight light = lights[i];
+
+            rray shadow_ray;
+            shadow_ray.origin = intersection;
+            shadow_ray.dir = normalize(light.origin-intersection);
+            shadow_ray.rgb = (float3){0.0f, 0.0f, 0.0f};
+
+            float3 light_intersection, light_normal;
+            rmaterial light_material;
+
+            uint light_intersect = findIntersection(&shadow_ray, spheres, planes,
+                                                    lights, spheres_num, planes_num,
+                                                    light_num, &light_intersection,
+                                                    &light_normal,
+                                                    &light_material);
+
+            float light_distance = distance(light.origin, intersection);
+            float obj_distance   = distance(light_intersection, intersection);
+            if (light_intersect != 0 && obj_distance < light_distance) { continue; }
+
+            float d = light_distance;
+            float3 light_rgb = light.rgb*light.intensity*INVERSE_SQUARE_LIGHT*1/(d*d);
+
+            /* v points from the intersection to the ray origin */
+            float3 v = normalize(ray.origin - intersection);
+            /* h is the bisector of v and reflected ray */
+            float3 h = normalize(v+shadow_ray.dir);
+
+            /* Specular component */
+            float3 spec_f = pow(max(0.0f, dot(normal, h)), (float)material.shininess);
+            output[id].rgb += f*material.specular*light_rgb*spec_f; 
+
+            /* Diffuse component */
+            float3 diff_f = max(0.0f, dot(normal, shadow_ray.dir));
+            output[id].rgb += f*material.diffuse*light_rgb*diff_f;
+        }
+        f*= material.fresnel+(1-material.fresnel)*pow((dot(normal, ray.dir)), 5.0f);
+        //f *= 0.3;
         ray.dir = new_dir;
         ray.origin = intersection;
         ray.depth++;
 
-    }
 
+    }
     output[id].rgb = clamp(output[id].rgb, 0.0f, 1.0f);
 }

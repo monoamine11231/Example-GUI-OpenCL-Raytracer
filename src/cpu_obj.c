@@ -4,19 +4,19 @@
 
 const rmaterial plastic = { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f},
 
-                            .ambient        = 0.4,
-                            .diffuse        = 0.5,
-                            .specular       = 0.4,
-                            .shininess      = 3,
+                            .ambient        = 0.20,
+                            .diffuse        = 0.6,
+                            .specular       = 0.6,
+                            .shininess      = 50,
 
                             .transperent    = CL_FALSE,
-                            .fresnel        = 0.2, };
+                            .fresnel        = 0.8, };
 
-const rmaterial mirror = {  .rgb            = (cl_float3){.x = 0.0f, .y = 0.0f, .z = 0.0f},
-                            .ambient        = 0.0f,
+const rmaterial mirror = {  .rgb            = (cl_float3){.x = 0.2f, .y = 0.2f, .z = 0.2f},
+                            .ambient        = 0.3f,
                             .diffuse        = 0.0f,
-                            .specular       = 0.0f,
-                            .shininess      = 0.0f,
+                            .specular       = 0.6f,
+                            .shininess      = 100.0f,
 
                             .transperent    = CL_FALSE,
                             .fresnel        = 1.0f, };
