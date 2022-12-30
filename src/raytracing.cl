@@ -302,7 +302,4 @@ __kernel void raytracer(__global rray* rays, __global rray* output,
     }
 
     output[id].rgb = clamp(output[id].rgb, 0.0f, 1.0f);
-    if (output[id].rgb.x < 0.04f && output[id].rgb.y == 0.0f && output[id].rgb.z == 0.0f) {
-        printf("%i\n", id);
-    }
 }
