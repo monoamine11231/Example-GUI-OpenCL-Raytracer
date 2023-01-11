@@ -1,3 +1,6 @@
+#ifndef __TYPES_CL
+#define __TYPES_CL
+
 struct __rmaterial {
     float3              rgb;
 
@@ -50,3 +53,14 @@ struct __rray {
 } __attribute__((packed));
 
 typedef struct __rray rray;
+
+struct __rcamera {
+    rray        pos_dir;
+
+    float       fov;
+    float       focal_length;
+} __attribute__((packed));
+
+typedef struct __rcamera rcamera;
+
+#endif

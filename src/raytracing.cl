@@ -11,7 +11,7 @@
 
 
 
-__kernel void raytracer(__global rray* rays, __global rray* output,
+__kernel void raytracer(__global rray* rays,
                         __global rsphere* spheres,
                         __global rplane* planes, __global rlight* lights,
                         uchar spheres_num, uchar planes_num, uchar light_num,
@@ -22,6 +22,7 @@ __kernel void raytracer(__global rray* rays, __global rray* output,
         return;
     }
     rray ray = rays[id];
+    //printf("%f %f %f\n", ray.origin.x,ray.origin.y,ray.origin.z);
 
     float f = 1.0f;
     
@@ -41,7 +42,7 @@ __kernel void raytracer(__global rray* rays, __global rray* output,
             break;
         }
         float3 new_dir = normalize(ray.dir - 2*dot(normal, ray.dir)*normal);
-        output[id].rgb += f* material.rgb * material.ambient;
+        ray.rgb += f* material.rgb * material.ambient;
 
         /* Calculate direct illumination on non light objects */
         for(uchar i = 0; i < light_num; i++) {
@@ -76,11 +77,11 @@ __kernel void raytracer(__global rray* rays, __global rray* output,
 
             /* Specular component */
             float3 spec_f = pow(max(0.0f, dot(normal, h)), (float)material.shininess);
-            output[id].rgb += f*material.specular*light_rgb*spec_f; 
+            ray.rgb += f*material.specular*light_rgb*spec_f; 
 
             /* Diffuse component */
             float3 diff_f = max(0.0f, dot(normal, shadow_ray.dir));
-            output[id].rgb += f*material.diffuse*light_rgb*diff_f;
+            ray.rgb += f*material.diffuse*light_rgb*diff_f;
         }
 
         /* WHY DID I HAVE TO FIND MYSELF THAT THE DOT PRODUCT MUST BE SIGN FLIPPED */
@@ -94,9 +95,7 @@ __kernel void raytracer(__global rray* rays, __global rray* output,
         ray.dir = new_dir;
         ray.origin = intersection;
         ray.depth++;
-
-
     }
 
-    output[id].rgb = clamp(output[id].rgb, 0.0f, 1.0f);
+    rays[id].rgb = clamp(ray.rgb, 0.0f, 1.0f);
 }

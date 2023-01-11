@@ -1,4 +1,9 @@
+#ifndef __PRIMITIVES_CL
+#define __PRIMITIVES_CL
+
 #define EPSILON 0.1f
+
+#define PRINT_VEC(v) printf("%f %f %f\n", v.x, v.y, v.z)
 
 bool intersect_sphere(rray *ray, float3* sphere_origin, float sphere_radius, float* t) {
 
@@ -154,3 +159,4 @@ uint findIntersection(rray *ray,
     }
     return 1;
 }
+#endif
