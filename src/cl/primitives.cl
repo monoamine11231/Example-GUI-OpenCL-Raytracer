@@ -60,7 +60,8 @@ uint findIntersection(rray *ray,
                       __global rsphere* spheres, __global rplane* planes,
                       __global rlight* lights, uchar spheres_num, uchar planes_num,
                       uchar light_num, float3* intersection, 
-                      float3* normal, rmaterial* material) {
+                      float3* normal, rmaterial* material,
+                      read_only image2d_array_t im_arr) {
                         
     rmaterial           transfer_material;
 
@@ -108,9 +109,16 @@ uint findIntersection(rray *ray,
         interpoint = ray->origin+ray->dir*t;
 
         target_normal = plane.normal;
+        float im_scale = 100.0f;
+        int4 pixel = read_imagei(im_arr, (int4){abs(((int)(interpoint.x*im_scale)))%256, abs(((int)(interpoint.z*im_scale)))%256, 0, 0});
+
         interpoint += target_normal*EPSILON;
         
         transfer_material = plane.material;
+    
+        float3 pixelf = (float3){(float)pixel.x/255.0f,(float)pixel.y/255.0f,(float)pixel.z/255.0f};
+        if (transfer_material.reflectivity != 1.0f) {transfer_material.rgb = pixelf;}
+        
 
         did_intersect = true;
         hit_light = false;

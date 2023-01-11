@@ -23,7 +23,6 @@ __kernel void raytracer(__global rray* rays,
     }
     rray ray = rays[id];
 
-    int4 pixel = read_imagei(im_arr, (int4){1, 1, 0, 0});
 
     float f = 1.0f;
     
@@ -33,7 +32,7 @@ __kernel void raytracer(__global rray* rays,
         rmaterial material;
         uint intersect = findIntersection(&ray, spheres, planes, lights, spheres_num,
                                           planes_num, light_num, &intersection, &normal,
-                                          &material);
+                                          &material, im_arr);
 
         if (!intersect) {   
             break;
@@ -61,7 +60,8 @@ __kernel void raytracer(__global rray* rays,
                                                     lights, spheres_num, planes_num,
                                                     light_num, &light_intersection,
                                                     &light_normal,
-                                                    &light_material);
+                                                    &light_material,
+                                                    im_arr);
 
             float light_distance = distance(light.origin, intersection);
             float obj_distance   = distance(light_intersection, intersection);

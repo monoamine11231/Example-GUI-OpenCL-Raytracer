@@ -12,7 +12,7 @@ int main() {
     cl_uint pheight = HEIGHT;
 
     rcamera camera = rinit_camera(
-        (cl_float3){.x = 0.8f, .y = 3.0f, .z = 0.0f},
+        (cl_float3){.x = 0.8f, .y = 3.0f, .z = -4.0f},
         (cl_float3){.x = 0.0f, .y = -0.4f, .z = 1.0f},
         120.0f, 1.0f
     );
