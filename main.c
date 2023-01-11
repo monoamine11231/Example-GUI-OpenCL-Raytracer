@@ -27,8 +27,8 @@ int main() {
 
     cl_wrap cl_wrap;
     cl_wrap_init(&cl_wrap, CL_DEVICE_TYPE_GPU,
-                 "src/raygen.cl", "raygen",
-                 "src/raytracing.cl", "raytracer", NULL);
+                 "src/cl/raygen.cl", "raygen",
+                 "src/cl/raytracing.cl", "raytracer", NULL);
 
     /* Camera perspective values for ray generation */
     cl_float3 im_corner, camera_origin, up, right;
@@ -63,6 +63,8 @@ int main() {
     cl_wrap_load_single_data(&cl_wrap, 1, 6, &light_num, sizeof(cl_uchar));
     cl_wrap_load_single_data(&cl_wrap, 1, 7, &pixels, sizeof(cl_uint));
 
+
+    cl_wrap_load_images(&cl_wrap, 1, 8,  CL_MEM_COPY_HOST_PTR, 1, "assets/cobblestone.png");
 
     rray* rays = malloc(ray_size);
     cl_wrap_output(&cl_wrap, WIDTH*HEIGHT, 0, 0, 0, 0, NULL);

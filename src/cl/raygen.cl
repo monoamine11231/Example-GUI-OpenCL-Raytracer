@@ -1,5 +1,5 @@
-#include "src/types.cl"
-#include "src/primitives.cl"
+#include "src/cl/types.cl"
+#include "src/cl/primitives.cl"
 
 
 __kernel void raygen(float3 image_lt_corner, float3 camera_origin,

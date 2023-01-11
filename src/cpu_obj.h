@@ -6,7 +6,7 @@
 
 
 #pragma scalar_storage_order little-endian
-#pragma pack(push, 1)
+#pragma pack(push, 16)
 struct __rmaterial {
     cl_float3           rgb;
 

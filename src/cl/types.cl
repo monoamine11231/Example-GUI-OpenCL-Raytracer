@@ -12,21 +12,21 @@ struct __rmaterial {
     uint                transperent;
     float               fresnel;
     float               reflectivity;
-} __attribute__((packed));
+} __attribute__ ((aligned (16)));
 
 struct __rsphere {
     float3              origin;
     float               radius;
 
     struct __rmaterial  material;
-} __attribute__((packed));
+} __attribute__ ((aligned (16)));
 
 struct __rplane {
     float3              normal;
     float3              point_in_plane;
 
     struct __rmaterial  material;
-} __attribute__((packed));
+} __attribute__ ((aligned (16)));
 
 /* Light objects are spheres */
 struct __rlight {
@@ -35,7 +35,7 @@ struct __rlight {
     float               intensity;
 
     float3              rgb;   
-} __attribute__((packed));
+} __attribute__ ((aligned (16)));
 
 typedef struct __rmaterial  rmaterial;
 typedef struct __rsphere    rsphere;
@@ -50,17 +50,9 @@ struct __rray {
     float3   rgb;
 
     int      depth;
-} __attribute__((packed));
+} __attribute__ ((aligned (16)));
 
 typedef struct __rray rray;
 
-struct __rcamera {
-    rray        pos_dir;
-
-    float       fov;
-    float       focal_length;
-} __attribute__((packed));
-
-typedef struct __rcamera rcamera;
 
 #endif

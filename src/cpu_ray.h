@@ -3,7 +3,7 @@
 
 #include <CL/opencl.h>
 
-
+#pragma pack(push, 16)
 struct __rray {
     cl_float3   origin;
     cl_float3   dir;
@@ -11,7 +11,8 @@ struct __rray {
     cl_float3   rgb;
 
     cl_int      depth;
-} __attribute__((packed));
+};
+#pragma pack(pop)
 
 typedef struct __rray rray;
 
@@ -20,7 +21,7 @@ struct __rcamera {
 
     cl_float    fov;
     cl_float    focal_length;
-} __attribute__((packed));
+};
 
 typedef struct __rcamera rcamera;
 

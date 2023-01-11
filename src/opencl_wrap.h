@@ -33,6 +33,8 @@ void cl_wrap_load_global_data(cl_wrap* wrap, cl_uint kernel_id, cl_uint arg_id,
                               const void* data, size_t size, cl_mem_flags mem_flags);
 void cl_wrap_load_single_data(cl_wrap* wrap, cl_uint kernel_id, cl_uint arg_id,
                               const void* data, size_t obj_size);
+void cl_wrap_load_images(cl_wrap* wrap, cl_uint kernel_id, cl_uint arg_id,
+                         cl_mem_flags mem_flags, cl_uint image_num, ...);
 /* Runs the kernel and outputs the result to host */
 void cl_wrap_output(cl_wrap* wrap, size_t array_size, size_t output_size, 
                     cl_uint kernel_run_id, cl_uint kernel_id, cl_int arg_id,

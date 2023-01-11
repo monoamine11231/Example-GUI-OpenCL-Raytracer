@@ -1,5 +1,5 @@
-#include "src/types.cl"             /* All used types */
-#include "src/primitives.cl"        /* Intersection functions */
+#include "src/cl/types.cl"             /* All used types */
+#include "src/cl/primitives.cl"        /* Intersection functions */
 
 
 
@@ -15,14 +15,15 @@ __kernel void raytracer(__global rray* rays,
                         __global rsphere* spheres,
                         __global rplane* planes, __global rlight* lights,
                         uchar spheres_num, uchar planes_num, uchar light_num,
-                        uint total_size ) {
+                        uint total_size, read_only image2d_array_t im_arr ) {
 
     uint id = get_global_id(0);
     if (id >= total_size) {
         return;
     }
     rray ray = rays[id];
-    //printf("%f %f %f\n", ray.origin.x,ray.origin.y,ray.origin.z);
+
+    int4 pixel = read_imagei(im_arr, (int4){1, 1, 0, 0});
 
     float f = 1.0f;
     
