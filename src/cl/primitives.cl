@@ -5,6 +5,15 @@
 
 #define PRINT_VEC(v) printf("%f %f %f\n", v.x, v.y, v.z)
 
+
+int euclidean_modulo(int a, int b) {
+  int m = a % b;
+  if (m < 0) {
+    m = (b < 0) ? m - b : m + b;
+  }
+  return m;
+}
+
 bool intersect_sphere(rray *ray, float3* sphere_origin, float sphere_radius, float* t) {
 
     float3  v = ray->origin-(*sphere_origin);
@@ -109,16 +118,55 @@ uint findIntersection(rray *ray,
         interpoint = ray->origin+ray->dir*t;
 
         target_normal = plane.normal;
-        float im_scale = 100.0f;
-        int4 pixel = read_imagei(im_arr, (int4){abs(((int)(interpoint.x*im_scale)))%256, abs(((int)(interpoint.z*im_scale)))%256, 0, 0});
+
+        transfer_material = plane.material;
+
+        /* If there's a texture attached on the plane */
+        if (plane.material.texture_id >= 0) {
+            float3 vecs[3];
+            vecs[0] = (float3){1.0f, 0.0f, 0.0f};
+            vecs[1] = (float3){0.0f, 1.0f, 0.0f};
+            vecs[2] = (float3){0.0f, 0.0f, 1.0f};
+
+            float3 basis[2];
+
+            /* Calculate the basis for the plane */
+            for (int i = 0; i < 3; i++) {
+                float3 cr = cross(vecs[i], plane.normal);
+                if (dot((float3){1.0f,1.0f,1.0f}, cr) == 0.0f) {
+                    continue;
+                }
+
+                basis[0] = cr;
+                basis[1] = cross(plane.normal, cr);
+                break;
+            }
+
+            float ui = dot(basis[0], interpoint)*plane.material.texture_scale;
+            float vi = dot(basis[1], interpoint)*plane.material.texture_scale;
+
+            int2 im_dim = get_image_dim(im_arr);
+            
+            /* Data used to fetch the pixel from the texture */
+            /* euclidean_modulo to guarantee no negative values on coordinates */
+            int4 pixel_fetch = (int4){
+                euclidean_modulo((int)ui, im_dim[0]),
+                euclidean_modulo((int)vi, im_dim[1]),
+                plane.material.texture_id, 0 
+            };
+
+            int4    pixeli = read_imagei(im_arr, pixel_fetch);
+            /* Cast to normalized float manually */
+            float3  pixelf = (float3){
+                (float)pixeli.x/255.0f,
+                (float)pixeli.y/255.0f,
+                (float)pixeli.z/255.0f
+            };
+
+            transfer_material.rgb = pixelf;
+        }
 
         interpoint += target_normal*EPSILON;
-        
-        transfer_material = plane.material;
-    
-        float3 pixelf = (float3){(float)pixel.x/255.0f,(float)pixel.y/255.0f,(float)pixel.z/255.0f};
-        if (transfer_material.reflectivity != 1.0f) {transfer_material.rgb = pixelf;}
-        
 
         did_intersect = true;
         hit_light = false;

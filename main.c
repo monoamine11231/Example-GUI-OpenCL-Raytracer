@@ -64,7 +64,11 @@ int main() {
     cl_wrap_load_single_data(&cl_wrap, 1, 7, &pixels, sizeof(cl_uint));
 
 
-    cl_wrap_load_images(&cl_wrap, 1, 8,  CL_MEM_COPY_HOST_PTR, 1, "assets/cobblestone.png");
+    cl_wrap_load_images(&cl_wrap, 1, 8,  CL_MEM_COPY_HOST_PTR, 4, 
+                        "assets/cobblestone.png",
+                        "assets/sand.png",
+                        "assets/white-marble.png",
+                        "assets/grass.png");
 
     rray* rays = malloc(ray_size);
     cl_wrap_output(&cl_wrap, WIDTH*HEIGHT, 0, 0, 0, 0, NULL);

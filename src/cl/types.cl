@@ -12,6 +12,9 @@ struct __rmaterial {
     uint                transperent;
     float               fresnel;
     float               reflectivity;
+
+    int                 texture_id;     /* -1: No Texture */
+    float               texture_scale;
 } __attribute__ ((aligned (16)));
 
 struct __rsphere {

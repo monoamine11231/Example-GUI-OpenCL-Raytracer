@@ -18,6 +18,9 @@ struct __rmaterial {
     cl_bool             transperent;
     cl_float            fresnel;
     cl_float            reflectivity;
+
+    cl_int              texture_id;
+    cl_float            texture_scale;
 };
 
 struct __rsphere {
