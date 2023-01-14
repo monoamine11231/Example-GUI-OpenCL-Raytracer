@@ -4,5 +4,6 @@ CMakeCache.txt
 Makefile
 CMakeFiles/
 ray
+scene
 a.out
 test.cl
