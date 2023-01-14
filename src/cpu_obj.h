@@ -16,7 +16,7 @@ struct __rmaterial {
     cl_uint             shininess;
     
     cl_bool             transperent;
-    cl_float            fresnel;
+    cl_float            n;
     cl_float            reflectivity;
 
     cl_int              texture_id;
@@ -55,6 +55,7 @@ typedef struct __rlight     rlight;
 
 extern const rmaterial      plastic;
 extern const rmaterial      mirror;
+extern const rmaterial      glass;
 
 
 /* Have written some archive protocol to store everything in the same file */

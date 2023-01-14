@@ -6,6 +6,53 @@
 #define PRINT_VEC(v) printf("%f %f %f\n", v.x, v.y, v.z)
 
 
+float3 reflect(float3 *incident, float3 *normal) {
+    float cosI = -dot(*normal, *incident);
+    return *incident + 2*cosI * (*normal);
+}
+
+float3 refract(float n1, float n2, float3* incident, float3* normal)
+{
+    float n = n1/n2;
+    float cosI = -dot(*normal, *incident);
+    float sinT2 = n*n*(1.0f-cosI*cosI);
+
+    if (sinT2 > 1.0f) {
+        return (float3){NAN, NAN, NAN};
+    }
+
+    float cosT = sqrt(1.0f - sinT2);
+    return n*(*incident)+(n*cosI-cosT)*(*normal);
+}
+
+float reflectance(float n1, float n2, float3* incident, float3* normal) {
+    float n = n1/n2;
+    float cosI = -dot(*normal, *incident);
+    float sinT2 = n*n*(1.0f-cosI*cosI);
+    if (sinT2 > 1.0f) { return 1.0f; }
+
+    float cosT = sqrt(1.0f-sinT2);
+    float rorth = (n1*cosI-n2*cosT)/(n1*cosI+n2*cosT);
+    float rPar = (n2*cosI-n1*cosT)/(n2*cosI+n1*cosT);
+    return (rorth*rorth+rPar*rPar) / 2.0f;
+}
+
+float compute_schlick(float n1, float n2, float3* incident, float3 *normal) {
+    float r0 = (n1-n2)/(n1+n2);
+    r0*=r0;
+    float cosX = -dot(*normal, *incident);
+    if (n1 > n2) {
+        float n = n1/n2;
+        float sinT2 = n*n*(1.0f-cosX*cosX);
+        if (sinT2 > 1.0f) { return 1.0f; }
+
+        cosX = sqrt(1.0f-sinT2);
+    }
+
+    float x = 1.0f-cosX;
+    return r0+(1.0f-r0)*x*x*x*x*x;
+}
+
 int euclidean_modulo(int a, int b) {
   int m = a % b;
   if (m < 0) {
@@ -204,7 +251,7 @@ uint findIntersection(rray *ray,
     *material       = transfer_material;
     if (hit_light) {
         material->transperent   = false;
-        material->fresnel       = 0.0f;
+        material->n             = 0.0f;
         material->ambient       = 1.0f;
         material->specular      = 0.0f;
         material->diffuse       = 0.0f;

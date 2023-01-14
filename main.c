@@ -4,17 +4,17 @@
 #include "cpu_obj.h"
 
 
-#define WIDTH 2000
-#define HEIGHT 1000
+#define WIDTH 1000
+#define HEIGHT 500
 
 int main() {
     cl_uint pwidth  = WIDTH;
     cl_uint pheight = HEIGHT;
 
     rcamera camera = rinit_camera(
-        (cl_float3){.x = 0.8f, .y = 3.0f, .z = -4.0f},
-        (cl_float3){.x = 0.0f, .y = -0.4f, .z = 1.0f},
-        120.0f, 1.0f
+        (cl_float3){.x = 0.8f, .y = 2.5f, .z = -4.0f},
+        (cl_float3){.x = 0.0f, .y = 0.0f, .z = 1.0f},
+        90.0f, 1.0f
     );
 
     cl_uchar sphere_num, plane_num, light_num;

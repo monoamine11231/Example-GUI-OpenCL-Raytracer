@@ -10,7 +10,7 @@ struct __rmaterial {
     uint                shininess;
     
     uint                transperent;
-    float               fresnel;
+    float               n;
     float               reflectivity;
 
     int                 texture_id;     /* -1: No Texture */
