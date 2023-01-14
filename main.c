@@ -4,8 +4,8 @@
 #include "cpu_obj.h"
 
 
-#define WIDTH 1000
-#define HEIGHT 500
+#define WIDTH 2000
+#define HEIGHT 1000
 
 int main() {
     cl_uint pwidth  = WIDTH;

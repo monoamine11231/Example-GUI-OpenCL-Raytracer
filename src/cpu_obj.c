@@ -4,12 +4,13 @@
 
 const rmaterial plastic = { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f},
 
-                            .ambient        = 0.3f,
-                            .diffuse        = 0.8f,
+                            .ambient        = 0.2f,
+                            .diffuse        = 0.3f,
                             .specular       = 0.4f,
                             .shininess      = 50,
 
                             .transperent    = CL_FALSE,
+                            .dielectric     = CL_FALSE,
                             .n              = 1.4f,
                             .reflectivity   = 0.0f };
 
@@ -20,6 +21,7 @@ const rmaterial mirror = {  .rgb            = (cl_float3){.x = 0.2f,.y = 0.2f,.z
                             .shininess      = 100.0f,
 
                             .transperent    = CL_FALSE,
+                            .dielectric     = CL_TRUE,
                             .n              = 1.0f,
                             .reflectivity   = 1.0f, };
 
@@ -30,6 +32,7 @@ const rmaterial glass = {   .rgb            = (cl_float3){.x = 0.0f,.y = 0.0f,.z
                             .shininess      = 20.0f,
                             
                             .transperent    = CL_TRUE,
+                            .dielectric     = CL_TRUE,
                             .n              = 1.52f,
                             .reflectivity   = 0.04f, };
 

@@ -1,10 +1,28 @@
 #ifndef __PRIMITIVES_CL
 #define __PRIMITIVES_CL
 
-#define EPSILON 0.1f
+/* To avoid self shadow, we add the normal * EPSILON to the intersection */
+#define EPSILON 0.001f
+#define INVERSE_SQUARE_LIGHT M_1_PI_F
 
 #define PRINT_VEC(v) printf("%f %f %f\n", v.x, v.y, v.z)
 
+
+typedef struct {
+    uint x;
+} xorshift32_state;
+
+/* Pseudo random generator for soft shadow sampling */
+float xorshift32(xorshift32_state *state) {
+    uint x = state->x;
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+
+    state->x = x;
+
+    return ((float)x)/2147483648.0f*2.0f;
+}
 
 float3 reflect(float3 *incident, float3 *normal) {
     float cosI = -dot(*normal, *incident);
@@ -108,22 +126,89 @@ bool intersect_plane(rray *ray, float3* plane_normal, float3* point_in_plane, fl
     return true;
 }
 
+float3 plane_texture_pixel(rplane *plane, float3 *interpoint, image2d_array_t im_arr) {
+    float3 vecs[3];
+    vecs[0] = (float3){1.0f, 0.0f, 0.0f};
+    vecs[1] = (float3){0.0f, 1.0f, 0.0f};
+    vecs[2] = (float3){0.0f, 0.0f, 1.0f};
+
+    float3 basis[2];
+
+    /* Calculate the basis for the plane */
+    for (int i = 0; i < 3; i++) {
+        float3 cr = cross(vecs[i], plane->normal);
+        if (dot((float3){1.0f,1.0f,1.0f}, cr) == 0.0f) {
+            continue;
+        }
+
+        basis[0] = cr;
+        basis[1] = cross(plane->normal, cr);
+        break;
+    }
+
+    float ui = dot(basis[0], *interpoint)*plane->material.texture_scale;
+    float vi = dot(basis[1], *interpoint)*plane->material.texture_scale;
+
+    int2 im_dim = get_image_dim(im_arr);
+    
+    /* Data used to fetch the pixel from the texture */
+    /* euclidean_modulo to guarantee no negative values on coordinates */
+    int4 pixel_fetch = (int4){
+        euclidean_modulo((int)ui, im_dim[0]),
+        euclidean_modulo((int)vi, im_dim[1]),
+        plane->material.texture_id, 0 
+    };
+
+    int4    pixeli = read_imagei(im_arr, pixel_fetch);
+    /* Cast to normalized float manually */
+    float3  pixelf = (float3){
+        (float)pixeli.x/255.0f,
+        (float)pixeli.y/255.0f,
+        (float)pixeli.z/255.0f
+    };
+
+    return pixelf;
+}
+
+
+bool findLightIntersection(rray *ray,
+                        __global rlight *lights,
+                        uint light_num,
+                        float3 *color) {
+    bool did_intersect = false;
+    float t = INFINITY;
+    float3 color_;
+
+    for (uchar i = 0; i < light_num; i++) {
+        rlight light = lights[i];
+
+        float _t;
+        bool _intersect = intersect_sphere(ray, &light.origin, light.radius, &_t);
+        if (!_intersect || _t >= t) {
+            continue;
+        }
+
+        t = _t;     
+        float3 interpoint = ray->origin+ray->dir*t;
+        float d = distance(ray->origin, interpoint);
+
+        color_ = light.rgb*light.intensity*INVERSE_SQUARE_LIGHT*(1/d*d);
+        did_intersect = true;
+    }
+
+    *color = color_;
+    return did_intersect;
+}
 
 /*  RETURN 0: NO INTERSECTION
-    RETURN 1: INTERSECTION SOLID OBJECT
-    RETURN 2: INTERSECTION LIGHT OBJECT */
-uint findIntersection(rray *ray,
+    RETURN 1: INTERSECTION SOLID OBJECT */
+bool findSolidIntersection(rray *ray,
                       __global rsphere* spheres, __global rplane* planes,
-                      __global rlight* lights, uchar spheres_num, uchar planes_num,
-                      uchar light_num, float3* intersection, 
-                      float3* normal, rmaterial* material,
+                      uchar spheres_num, uchar planes_num,
+                      float3* intersection, float3* normal, rmaterial* material,
                       read_only image2d_array_t im_arr) {
                         
     rmaterial           transfer_material;
-
-    bool hit_light          = false;
-    /* Takes account the intensity */
-    float3 light_color;
 
     bool did_intersect      = false;
 
@@ -134,6 +219,7 @@ uint findIntersection(rray *ray,
     /* Find closest intersection with spheres */
     for (uchar i = 0; i < spheres_num; i++) {
         rsphere sphere = spheres[i];
+        
         float _t;
         bool _intersect = intersect_sphere(ray, &sphere.origin, sphere.radius, &_t);
         if (!_intersect || _t >= t) {
@@ -148,7 +234,6 @@ uint findIntersection(rray *ray,
 
         transfer_material = sphere.material;
         did_intersect = true;
-        hit_light = false;
     }
 
     /* Find closest intersection with planes */
@@ -170,96 +255,66 @@ uint findIntersection(rray *ray,
 
         /* If there's a texture attached on the plane */
         if (plane.material.texture_id >= 0) {
-            float3 vecs[3];
-            vecs[0] = (float3){1.0f, 0.0f, 0.0f};
-            vecs[1] = (float3){0.0f, 1.0f, 0.0f};
-            vecs[2] = (float3){0.0f, 0.0f, 1.0f};
 
-            float3 basis[2];
 
-            /* Calculate the basis for the plane */
-            for (int i = 0; i < 3; i++) {
-                float3 cr = cross(vecs[i], plane.normal);
-                if (dot((float3){1.0f,1.0f,1.0f}, cr) == 0.0f) {
-                    continue;
-                }
-
-                basis[0] = cr;
-                basis[1] = cross(plane.normal, cr);
-                break;
-            }
-
-            float ui = dot(basis[0], interpoint)*plane.material.texture_scale;
-            float vi = dot(basis[1], interpoint)*plane.material.texture_scale;
-
-            int2 im_dim = get_image_dim(im_arr);
-            
-            /* Data used to fetch the pixel from the texture */
-            /* euclidean_modulo to guarantee no negative values on coordinates */
-            int4 pixel_fetch = (int4){
-                euclidean_modulo((int)ui, im_dim[0]),
-                euclidean_modulo((int)vi, im_dim[1]),
-                plane.material.texture_id, 0 
-            };
-
-            int4    pixeli = read_imagei(im_arr, pixel_fetch);
-            /* Cast to normalized float manually */
-            float3  pixelf = (float3){
-                (float)pixeli.x/255.0f,
-                (float)pixeli.y/255.0f,
-                (float)pixeli.z/255.0f
-            };
-
-            transfer_material.rgb = pixelf;
+            transfer_material.rgb = plane_texture_pixel(&plane, &interpoint, im_arr);
         }
 
         interpoint += target_normal*EPSILON;
 
         did_intersect = true;
-        hit_light = false;
     }
 
-    /*
-    for (uchar i = 0; i < light_num; i++) {
-        rlight light = lights[i];
 
-        float _t;
-        bool _intersect = intersect_sphere(ray, &light.origin, light.radius, &_t);
-        if (!_intersect || _t >= t) {
-            continue;
-        }
-
-        t = _t;     
-
-        interpoint = ray->origin+ray->dir*t;
-        target_normal = normalize(interpoint-light.origin);
-
-
-        interpoint += target_normal*EPSILON;
-
-
-        light_color = light.rgb*light.intensity*INVERSE_SQUARE_LIGHT*1/(light.radius*light.radius);
-        did_intersect = true;
-        hit_light = true;
-    }
-    */
 
     if (!did_intersect) { return 0; }
 
     *intersection   = interpoint;
     *normal         = target_normal;
     *material       = transfer_material;
-    if (hit_light) {
-        material->transperent   = false;
-        material->n             = 0.0f;
-        material->ambient       = 1.0f;
-        material->specular      = 0.0f;
-        material->diffuse       = 0.0f;
-        material->shininess     = 0.0f;
-        /* High intensity */
-        material->rgb           = light_color;
-        return 2;
-    }
+
     return 1;
 }
+
+bool testShadowPath(float3 *to, float3 *from, __global rsphere *spheres,
+                    __global rplane *planes, uint spheres_num, uint planes_num) {
+
+    rray ray;
+    ray.origin = *from;
+    ray.dir = normalize((*to)-(*from));
+
+    float t                 = distance(*to, *from);
+
+    /* Find closest intersection with spheres */
+    for (uchar i = 0; i < spheres_num; i++) {
+        rsphere sphere = spheres[i];
+        if (sphere.material.transperent) {continue;}
+        
+        float _t;
+        bool _intersect = intersect_sphere(&ray, &sphere.origin, sphere.radius, &_t);
+        if (!_intersect || _t >= t) {
+            continue;
+        }
+
+        return true;
+    }
+
+    /* Find closest intersection with planes */
+    for (uchar i = 0; i < planes_num; i++) {
+        rplane      plane = planes[i];
+
+        float _t;
+        bool _intersect = intersect_plane(&ray, &plane.normal, &plane.point_in_plane,&_t);
+        if (!_intersect || _t >= t) {
+            continue;
+        }
+        
+        t = _t;
+
+        return true;
+    }
+
+    return false;
+}
+
 #endif

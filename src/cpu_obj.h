@@ -16,6 +16,7 @@ struct __rmaterial {
     cl_uint             shininess;
     
     cl_bool             transperent;
+    cl_bool             dielectric;
     cl_float            n;
     cl_float            reflectivity;
 

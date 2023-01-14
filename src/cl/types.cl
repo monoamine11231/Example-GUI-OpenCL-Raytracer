@@ -10,6 +10,7 @@ struct __rmaterial {
     uint                shininess;
     
     uint                transperent;
+    uint                dielectric;
     float               n;
     float               reflectivity;
 

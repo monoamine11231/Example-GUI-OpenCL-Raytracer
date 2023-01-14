@@ -6,11 +6,8 @@
 /* N value for the air surrounding */
 #define DEFAULT_N 1.0f
 
-#define MAX_DEPTH 10
-/* To avoid self shadow, we add the normal * EPSILON to the intersection */
-#define INVERSE_SQUARE_LIGHT 1.0f
-
-
+#define MAX_DEPTH 20
+#define MAX_SOFT_SHADOWS 100
 
 
 
@@ -29,6 +26,9 @@ __kernel void raytracer(__global rray* rays,
     float   n_stack[MAX_DEPTH];
     float   f_stack[MAX_DEPTH];
 
+    xorshift32_state rand_state;
+    rand_state.x = id;
+
     uint    stack_size = 1;
 
     ray_stack[0]    = rays[id];
@@ -40,8 +40,15 @@ __kernel void raytracer(__global rray* rays,
             float3 intersection;
             float3 normal;
             rmaterial material;
-            uint intersect = findIntersection(&ray_stack[stack_size-1], spheres, planes, 
-                                            lights, spheres_num, planes_num, light_num,
+
+            float3 light_color;
+            if (findLightIntersection(&ray_stack[stack_size - 1],lights, light_num, &light_color)) {
+                ray_stack[stack_size - 1].rgb += f_stack[stack_size-1]*light_color;
+                break;
+            }
+
+            uint intersect = findSolidIntersection(&ray_stack[stack_size-1], spheres, planes, 
+                                            spheres_num, planes_num,
                                             &intersection, &normal, &material, im_arr);
 
             if (!intersect) {   
@@ -51,42 +58,46 @@ __kernel void raytracer(__global rray* rays,
             ray_stack[stack_size-1].rgb += f_stack[stack_size-1]*\
                                                 material.rgb * material.ambient;
 
-
-                if (id == 3457 && material.reflectivity == 0.002f) {
-                    PRINT_VEC(ray_stack[stack_size-1].rgb);
-                }
-
             /* Calculate direct illumination on non light objects */
             for(uchar i = 0; i < light_num; i++) {
                 rlight light = lights[i];
 
-                rray shadow_ray;
-                shadow_ray.origin = intersection;
-                shadow_ray.dir = normalize(light.origin-intersection);
-                shadow_ray.rgb = (float3){0.0f, 0.0f, 0.0f};
+                /* Amount of soft shadows not blocked by objects */
+                uint soft_shadows = 0;
 
-                float3 light_intersection, light_normal;
-                rmaterial light_material;
+                /* Main soft shadow through light center point */
+                float3 shadow_dir = normalize(light.origin-intersection);
 
-                uint light_intersect = findIntersection(&shadow_ray, spheres, planes,
-                                                        lights, spheres_num, planes_num,
-                                                        light_num, &light_intersection,
-                                                        &light_normal,
-                                                        &light_material,
-                                                        im_arr);
+                for (uint j = 0; j < MAX_SOFT_SHADOWS; j++) {
+                    /* Use xorshift pseudorandom generator to sample on the light
+                       object's sphere (VERY SLOW) */
+                    float theta = 2*M_PI*xorshift32(&rand_state);
+                    float phi = M_PI*xorshift32(&rand_state);
 
-                float light_distance = distance(light.origin, intersection);
-                float obj_distance   = distance(light_intersection, intersection);
-                if (light_intersect != 0 && obj_distance < light_distance) {
-                    continue;
+                    float x = light.radius*sin(phi)*cos(theta);
+                    float y = light.radius*sin(phi)*sin(theta);
+                    float z = light.radius*cos(phi);
+
+                    float3 sample = light.origin+(float3){x,y,z};
+
+                    soft_shadows += !testShadowPath(&sample, &intersection, 
+                                            spheres, planes, spheres_num, planes_num);
                 }
-                float d = light_distance;
+
+                /* Soft shadow ratio */
+                float ssr = soft_shadows/(float)MAX_SOFT_SHADOWS;
+
+                float d = distance(light.origin, intersection);
+
+                
                 float3 light_rgb =light.rgb*light.intensity*INVERSE_SQUARE_LIGHT*1/(d*d);
+                /* Apply the soft shadow ratio */
+                light_rgb*=ssr;
 
                 /* v points from the intersection to the ray origin */
                 float3 v = normalize(ray_stack[stack_size-1].origin - intersection);
                 /* h is the bisector of v and reflected ray */
-                float3 h = normalize(v+shadow_ray.dir);
+                float3 h = normalize(v+shadow_dir);
 
                 /* Specular component */
                 float3 spec_f = pow(max(0.0f, dot(normal, h)),(float)material.shininess);
@@ -94,15 +105,10 @@ __kernel void raytracer(__global rray* rays,
                                                     material.specular*light_rgb*spec_f; 
 
                 /* Diffuse component */
-                float3 diff_f = max(0.0f, dot(normal, shadow_ray.dir));
+                float3 diff_f = max(0.0f, dot(normal, shadow_dir));
                 ray_stack[stack_size-1].rgb += f_stack[stack_size-1]*\
                                                     material.diffuse*light_rgb*diff_f;
             }
-
-                if (id == 3457 && material.reflectivity == 0.002f) {
-                    PRINT_VEC(ray_stack[stack_size-1].rgb);
-                    printf("\n");
-                }
 
             /* Save the incident ray before it gets updated */
             float3 incident = ray_stack[stack_size-1].dir;
@@ -112,8 +118,12 @@ __kernel void raytracer(__global rray* rays,
             
             n2 = (n1 == DEFAULT_N) ? n2 : DEFAULT_N;
 
-            float fr = compute_schlick(n1, n2, &incident, &normal);
-            float reflect_amount=material.reflectivity+(1.0f-material.reflectivity)*fr;
+            float reflect_amount = material.reflectivity;
+            if (material.dielectric) {
+                float fr = compute_schlick(n1, n2, &incident, &normal);
+                reflect_amount=material.reflectivity+(1.0f-material.reflectivity)*fr;
+            }
+
             
             float old_f = f_stack[stack_size-1];
             f_stack[stack_size-1]*= reflect_amount;
