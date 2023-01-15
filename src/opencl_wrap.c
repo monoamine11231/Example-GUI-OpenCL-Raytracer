@@ -367,7 +367,7 @@ void cl_wrap_output(cl_wrap* wrap, size_t array_size, size_t output_size,
     /* Calculate the global size based on the local one */
     global_size = ceil(array_size/(float)local_size)*local_size;
 
-    printf("global=%lu, local=%lu\n", global_size, local_size);
+    //printf("global=%lu, local=%lu\n", global_size, local_size);
 
 
     cl_error = clEnqueueNDRangeKernel(wrap->queue, wrap->kernels[kernel_run_id], 1, NULL,

@@ -17,7 +17,8 @@ __kernel void raytracer(__global rray* rays,
                         uchar spheres_num, uchar planes_num, uchar light_num,
                         uint total_size,
                         read_only image2d_array_t im_arr,
-                        read_only image2d_array_t skybox) {
+                        read_only image2d_array_t skybox,
+                        __global uint* output) {
 
     uint id = get_global_id(0);
     if (id >= total_size) {
@@ -186,5 +187,6 @@ __kernel void raytracer(__global rray* rays,
         stack_size--;
     }
 
-    rays[id].rgb = clamp(ray_stack[0].rgb, 0.0f, 1.0f);
+    float3 rgb_ = clamp(ray_stack[0].rgb, 0.0f, 1.0f)*255.0f;
+    output[id] = 0 << 24 | (uint)rgb_.x << 16 | (uint)rgb_.y << 8 | (uint)rgb_.z;
 }

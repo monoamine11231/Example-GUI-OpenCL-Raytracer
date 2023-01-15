@@ -12,6 +12,8 @@ project(scene
     DESCRIPTION "Scene generator and dumper for raytracer"
     LANGUAGES C)
 
+add_subdirectory(dependencies/minifb)
+
 add_executable(ray
     main.c
     src/cpu_ray.c
@@ -25,7 +27,5 @@ add_executable(scene
 add_compile_definitions(CL_TARGET_OPENCL_VERSION=300)
 target_compile_options(ray PRIVATE -Isrc/ -Wall -Wextra -g)
 target_compile_options(scene PRIVATE -Isrc/ -Wall -Wextra -g)
-target_link_libraries(ray OpenCL)
+target_link_libraries(ray OpenCL m png minifb)
 target_link_libraries(scene OpenCL)
-target_link_libraries(ray m)
-target_link_libraries(ray png)
