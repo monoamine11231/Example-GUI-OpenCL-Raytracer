@@ -20,13 +20,13 @@ project(scene
 add_subdirectory(dependencies/minifb)
 
 add_executable(raypng
-    main.c
+    raypng.c
     src/cpu_ray.c
     src/cpu_obj.c
     src/opencl_wrap.c)
 
 add_executable(rayinteractive
-    interactive.c
+    rayinteractive.c
     src/cpu_ray.c
     src/cpu_obj.c
     src/opencl_wrap.c)
