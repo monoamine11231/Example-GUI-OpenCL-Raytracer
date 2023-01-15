@@ -38,4 +38,4 @@ bool        rgen_perspective(rcamera* camera, cl_float3* im_corner,
                              cl_float* w_factor, cl_float* h_factor,
                              cl_uint pwidth, cl_uint pheight);
 
-int         png_dump(const char* filename, rray* rays, cl_int pwidth, cl_int pheight);
+int         png_dump(const char* filename, cl_uint* buffer, cl_int pwidth, cl_int pheight);

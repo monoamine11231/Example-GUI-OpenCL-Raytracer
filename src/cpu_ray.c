@@ -105,7 +105,7 @@ bool rgen_perspective(rcamera* camera, cl_float3* im_corner,
                         };
 }
 
-int png_dump(const char* filename, rray* rays, cl_int pwidth, cl_int pheight) {
+int png_dump(const char* filename, cl_uint* buffer, cl_int pwidth, cl_int pheight) {
     FILE* fp;
     png_structp png_ptr     = NULL;
     png_infop info_ptr      = NULL;
@@ -144,9 +144,9 @@ int png_dump(const char* filename, rray* rays, cl_int pwidth, cl_int pheight) {
         row_pointers[r] = row;
 
         for (int c = 0; c < pwidth; c++) {
-            *row++ = (uint8_t)(rays[r*pwidth+c].rgb.x * 255.0f);
-            *row++ = (uint8_t)(rays[r*pwidth+c].rgb.y * 255.0f);
-            *row++ = (uint8_t)(rays[r*pwidth+c].rgb.z * 255.0f);
+            *row++ = (uint8_t)((buffer[r*pwidth+c] >> 16) & 0xFF);
+            *row++ = (uint8_t)((buffer[r*pwidth+c] >> 8) & 0xFF);
+            *row++ = (uint8_t)(buffer[r*pwidth+c] & 0xFF);
         }
     }
 

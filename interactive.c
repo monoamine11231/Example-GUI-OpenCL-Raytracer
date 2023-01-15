@@ -197,8 +197,6 @@ int main() {
     /* Release the OpenCL program */
     cl_wrap_release(&wrap);
 
-    //png_dump("out/scene.png", rays, WIDTH, HEIGHT);
-
     free(ext_spheres);
     free(ext_planes);
     free(ext_lights);
