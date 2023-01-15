@@ -10,7 +10,7 @@ project(raypng
 project(rayinteractive
     VERSION 1.0
     DESCRIPTION "Interactive raytracer with `minifb`"
-    LANGUAGE C)
+    LANGUAGES C)
 
 project(scene
     VERSION 1.0
