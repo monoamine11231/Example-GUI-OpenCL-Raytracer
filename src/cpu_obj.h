@@ -54,6 +54,7 @@ typedef struct __rsphere    rsphere;
 typedef struct __rplane     rplane;
 typedef struct __rlight     rlight;
 
+extern const rmaterial      stone;
 extern const rmaterial      plastic;
 extern const rmaterial      mirror;
 extern const rmaterial      glass;

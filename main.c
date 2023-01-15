@@ -1,19 +1,22 @@
 #include <CL/opencl.h>
+#include <sys/time.h>
 #include "opencl_wrap.h"
 #include "cpu_ray.h"
 #include "cpu_obj.h"
 
 
 #define WIDTH 800
-#define HEIGHT 500
+#define HEIGHT 600
 
 int main() {
     cl_uint pwidth  = WIDTH;
     cl_uint pheight = HEIGHT;
 
+    struct timeval start, stop;
+
     rcamera camera = rinit_camera(
-        (cl_float3){.x = 0.8f, .y = 2.5f, .z = -4.0f},
-        (cl_float3){.x = 0.0f, .y = 0.0f, .z = 1.0f},
+        (cl_float3){.x = 0.8f, .y = 2.5f, .z = -8.0f},
+        (cl_float3){.x = 0.2f, .y = 0.0f, .z = 1.0f},
         90.0f, 1.0f
     );
 
@@ -67,17 +70,26 @@ int main() {
     cl_wrap_load_images(&cl_wrap, 1, 8,  CL_MEM_COPY_HOST_PTR, 4, 
                         "assets/cobblestone.png",
                         "assets/sand.png",
-                        "assets/white-marble.png",
+                        "assets/check.png",
                         "assets/grass.png");
 
     cl_wrap_load_images(&cl_wrap, 1, 9,  CL_MEM_COPY_HOST_PTR, 1, 
                         "assets/bg/stormydays.png");
 
     rray* rays = malloc(ray_size);
+    gettimeofday(&start, NULL);
     cl_wrap_output(&cl_wrap, WIDTH*HEIGHT, 0, 0, 0, 0, NULL);
     /* Because we do not copy the ray memory buffer from the first kernel to the second,
        we just say to read the ray buffer which is stored on the first kernel 8:th arg */
     cl_wrap_output(&cl_wrap, WIDTH*HEIGHT, ray_size, 1, 0, 8, rays);
+    gettimeofday(&stop, NULL);
+
+    long milli_time, seconds, useconds;
+    seconds = stop.tv_sec - start.tv_sec; //seconds
+    useconds = stop.tv_usec - start.tv_usec; //milliseconds
+    milli_time = ((seconds) * 1000 + useconds/1000.0);
+    printf("Done, took: %ld ms\n", milli_time);
+
     cl_wrap_release(&cl_wrap);
 
     png_dump("out/scene.png", rays, WIDTH, HEIGHT);

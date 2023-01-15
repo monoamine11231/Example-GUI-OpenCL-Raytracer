@@ -2,6 +2,18 @@
 #include "cpu_obj.h"
 
 
+/* Smooth stone */
+const rmaterial stone =   { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f},
+                            .ambient        = 0.4f,
+                            .diffuse        = 0.2f,
+                            .specular       = 0.6f,
+                            .shininess      = 50,
+
+                            .transperent    = CL_FALSE,
+                            .dielectric     = CL_TRUE,
+                            .n              = 1.57f,
+                            .reflectivity   = 0.0f };
+
 const rmaterial plastic = { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f},
 
                             .ambient        = 0.3f,
@@ -12,7 +24,7 @@ const rmaterial plastic = { .rgb            = (cl_float3){.x = 1.0f, .y = 1.0f, 
                             .transperent    = CL_FALSE,
                             .dielectric     = CL_FALSE,
                             .n              = 1.4f,
-                            .reflectivity   = 0.05f };
+                            .reflectivity   = 0.1f };
 
 const rmaterial mirror = {  .rgb            = (cl_float3){.x = 0.2f,.y = 0.2f,.z = 0.2f},
                             .ambient        = 0.3f,

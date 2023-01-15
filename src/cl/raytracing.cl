@@ -6,8 +6,8 @@
 /* N value for the air surrounding */
 #define DEFAULT_N 1.0f
 
-#define MAX_DEPTH 20
-#define MAX_SOFT_SHADOWS 100
+#define MAX_DEPTH 10
+#define MAX_SOFT_SHADOWS 5
 
 
 
@@ -150,6 +150,7 @@ __kernel void raytracer(__global rray* rays,
             f_stack[stack_size-1]*= reflect_amount;
 
             ray_stack[stack_size-1].dir = reflect(&ray_stack[stack_size-1].dir, &normal);
+
             ray_stack[stack_size-1].origin = intersection;
             ray_stack[stack_size-1].depth++;
 
