@@ -4,8 +4,8 @@
 #include "cpu_obj.h"
 
 
-#define WIDTH 2000
-#define HEIGHT 1000
+#define WIDTH 800
+#define HEIGHT 500
 
 int main() {
     cl_uint pwidth  = WIDTH;
@@ -69,6 +69,9 @@ int main() {
                         "assets/sand.png",
                         "assets/white-marble.png",
                         "assets/grass.png");
+
+    cl_wrap_load_images(&cl_wrap, 1, 9,  CL_MEM_COPY_HOST_PTR, 1, 
+                        "assets/bg/stormydays.png");
 
     rray* rays = malloc(ray_size);
     cl_wrap_output(&cl_wrap, WIDTH*HEIGHT, 0, 0, 0, 0, NULL);

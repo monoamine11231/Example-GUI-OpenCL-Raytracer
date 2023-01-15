@@ -54,7 +54,7 @@ int main() {
     lights[0].rgb                       =   (cl_float3){.x = 0.0f, .y = 1.0f, .z = 0.0f};
 
     lights[1].origin                    =   (cl_float3){.x = 2.0f, .y = 3.6f, .z = 0.2f};
-    lights[1].intensity                 =   40.3f;
+    lights[1].intensity                 =   80.3f;
     lights[1].radius                    =   0.3f;
     lights[1].rgb                       =   (cl_float3){.x = 1.0f, .y = 1.0f, .z = 1.0f};
 
@@ -63,7 +63,7 @@ int main() {
     lights[2].radius                    =   0.1f;
     lights[2].rgb                       =   (cl_float3){.x = 0.0f, .y = 0.5f, .z = 1.0f};
 
-    int a = dump_robj("scenes/render.map", &spheres[0], 3, &planes[0], 2, &lights[0], 2);
+    int a = dump_robj("scenes/render.map", &spheres[0], 3, &planes[0], 2, &lights[0], 3);
     if (!a) {
         printf("Unable to create scene file\n");
     }

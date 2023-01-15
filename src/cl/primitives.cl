@@ -8,6 +8,104 @@
 #define PRINT_VEC(v) printf("%f %f %f\n", v.x, v.y, v.z)
 
 
+/* Thank you Wikipedia */
+int2 map_to_cube(float3 *dir, uint face_size) {
+    float x, y, z;
+    x = dir->x;
+    y = dir->y;
+    z = dir->z;
+
+    float absX = fabs(x); 
+    float absY = fabs(y); 
+    float absZ = fabs(z); 
+
+    bool isXPositive = x > 0;
+    bool isYPositive = y > 0;
+    bool isZPositive = z > 0;
+
+    float maxAxis, uc, vc;
+    uint shift_u = 0;
+    uint shift_v = 0;
+
+    // POSITIVE X
+    if (isXPositive && absX >= absY && absX >= absZ) {
+        // u (0 to 1) goes from +z to -z
+        // v (0 to 1) goes from -y to +y
+        maxAxis = absX;
+        uc = -z;
+        vc = y;
+        
+        /* Face index = 0, shift_u and shift_v points to the left bottom corner of the
+           target face image in the non-divided skybox texture*/
+        shift_u = face_size*2;
+        shift_v = face_size*1; 
+    }
+    // NEGATIVE X
+    if (!isXPositive && absX >= absY && absX >= absZ) {
+        // u (0 to 1) goes from -z to +z
+        // v (0 to 1) goes from -y to +y
+        maxAxis = absX;
+        uc = z;
+        vc = y;
+        
+        shift_v = face_size*1;
+    }
+
+    // POSITIVE Y
+    if (isYPositive && absY >= absX && absY >= absZ) {
+        // u (0 to 1) goes from -x to +x
+        // v (0 to 1) goes from +z to -z
+        maxAxis = absY;
+        uc = x;
+        vc = -z;
+        
+        shift_u = face_size;
+        shift_v = face_size*2;
+    }
+    // NEGATIVE Y
+    if (!isYPositive && absY >= absX && absY >= absZ) {
+        // u (0 to 1) goes from -x to +x
+        // v (0 to 1) goes from -z to +z
+        maxAxis = absY;
+        uc = x;
+        vc = z;
+        
+        shift_u = face_size;
+    }
+
+    // POSITIVE Z
+    if (isZPositive && absZ >= absX && absZ >= absY) {
+        // u (0 to 1) goes from -x to +x
+        // v (0 to 1) goes from -y to +y
+        maxAxis = absZ;
+        uc = x;
+        vc = y;
+        
+        shift_u = face_size;
+        shift_v = face_size*1;
+    }
+    // NEGATIVE Z
+    if (!isZPositive && absZ >= absX && absZ >= absY) {
+        // u (0 to 1) goes from +x to -x
+        // v (0 to 1) goes from -y to +y
+        maxAxis = absZ;
+        uc = -x;
+        vc = y;
+        
+        shift_u = face_size*3;
+        shift_v = face_size*1;
+    }
+
+    int2 uv;
+    float fu, fv;
+    fu = 0.5f * (uc / maxAxis + 1.0f);
+    fv = 0.5f * (vc / maxAxis + 1.0f);
+    uv.x = (int)(shift_u+fu * face_size);
+    uv.y = (int)(shift_v+fv * face_size);
+
+    return uv;
+}
+
 typedef struct {
     uint x;
 } xorshift32_state;

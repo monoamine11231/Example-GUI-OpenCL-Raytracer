@@ -15,7 +15,9 @@ __kernel void raytracer(__global rray* rays,
                         __global rsphere* spheres,
                         __global rplane* planes, __global rlight* lights,
                         uchar spheres_num, uchar planes_num, uchar light_num,
-                        uint total_size, read_only image2d_array_t im_arr ) {
+                        uint total_size,
+                        read_only image2d_array_t im_arr,
+                        read_only image2d_array_t skybox) {
 
     uint id = get_global_id(0);
     if (id >= total_size) {
@@ -51,8 +53,27 @@ __kernel void raytracer(__global rray* rays,
                                             spheres_num, planes_num,
                                             &intersection, &normal, &material, im_arr);
 
-            if (!intersect) {   
+            /* Sample skybox texture if no intersection */
+            if (!intersect) {
+                int2 uv = map_to_cube(&ray_stack[stack_size-1].dir,
+                                      get_image_dim(skybox).x/4);
+
+
+                int4 pixel_fetch = (int4) {
+                                    uv.x, get_image_dim(skybox).y-uv.y,
+                                    0, 0};
+
+                int4    pixeli = read_imagei(skybox, pixel_fetch);
+                /* Cast to normalized float manually */
+                float3  pixelf = (float3){
+                    (float)pixeli.x/255.0f,
+                    (float)pixeli.y/255.0f,
+                    (float)pixeli.z/255.0f
+                };
+
+                ray_stack[stack_size-1].rgb += f_stack[stack_size-1]*pixelf;
                 break;
+                
             }
 
             ray_stack[stack_size-1].rgb += f_stack[stack_size-1]*\

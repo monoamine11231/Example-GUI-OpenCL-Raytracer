@@ -345,7 +345,6 @@ void cl_wrap_load_images(cl_wrap* wrap, cl_uint kernel_id, cl_uint arg_id,
 
     /* Register the given kernel id as used */
     wrap->buffers_ids[kernel_id][wrap->buffers_num[kernel_id]++] = arg_id;
-
     free(images);
 }
 
