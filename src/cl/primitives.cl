@@ -4,6 +4,8 @@
 /* To avoid self shadow, we add the normal * EPSILON to the intersection */
 #define EPSILON 0.001f
 #define INVERSE_SQUARE_LIGHT M_1_PI_F
+#define TRANSPERENT_THROUGH 0.8f
+
 
 #define PRINT_VEC(v) printf("%f %f %f\n", v.x, v.y, v.z)
 
@@ -141,18 +143,6 @@ float3 refract(float n1, float n2, float3* incident, float3* normal)
     return n*(*incident)+(n*cosI-cosT)*(*normal);
 }
 
-float reflectance(float n1, float n2, float3* incident, float3* normal) {
-    float n = n1/n2;
-    float cosI = -dot(*normal, *incident);
-    float sinT2 = n*n*(1.0f-cosI*cosI);
-    if (sinT2 > 1.0f) { return 1.0f; }
-
-    float cosT = sqrt(1.0f-sinT2);
-    float rorth = (n1*cosI-n2*cosT)/(n1*cosI+n2*cosT);
-    float rPar = (n2*cosI-n1*cosT)/(n2*cosI+n1*cosT);
-    return (rorth*rorth+rPar*rPar) / 2.0f;
-}
-
 float compute_schlick(float n1, float n2, float3* incident, float3 *normal) {
     float r0 = (n1-n2)/(n1+n2);
     r0*=r0;
@@ -271,7 +261,11 @@ float3 plane_texture_pixel(rplane *plane, float3 *interpoint, image2d_array_t im
 
 bool findLightIntersection(rray *ray,
                         __global rlight *lights,
+                        __global rsphere *spheres,
+                        __global rplane *planes,
                         uint light_num,
+                        uint sphere_num,
+                        uint plane_num,
                         float3 *color) {
     bool did_intersect = false;
     float t = INFINITY;
@@ -294,8 +288,33 @@ bool findLightIntersection(rray *ray,
         did_intersect = true;
     }
 
+    /* If have not intersected with a light: return */
+    if (!did_intersect) { return false; }
+
+    for (uint i = 0; i < sphere_num; i++) {
+        rsphere sphere = spheres[i];
+        
+        float _t;
+        bool _intersect = intersect_sphere(ray, &sphere.origin, sphere.radius, &_t);
+        if (_intersect && _t <= t && !sphere.material.transperent) {
+            /* Did NOT intersect with light object because of a solid object */
+            return false;
+        }
+    }
+
+    for (uint i = 0; i < plane_num; i++) {
+        rplane      plane = planes[i];
+
+        float _t;
+        bool _intersect = intersect_plane(ray, &plane.normal, &plane.point_in_plane,&_t);
+        if (_intersect && _t <= t) {
+            return false;
+        }
+    }
+
+    /* If no previous returns, the ray did indeed intersect with a light object */ 
     *color = color_;
-    return did_intersect;
+    return true;
 }
 
 /*  RETURN 0: NO INTERSECTION
@@ -374,7 +393,7 @@ bool findSolidIntersection(rray *ray,
     return 1;
 }
 
-bool testShadowPath(float3 *to, float3 *from, __global rsphere *spheres,
+float testShadowPath(float3 *to, float3 *from, __global rsphere *spheres,
                     __global rplane *planes, uint spheres_num, uint planes_num) {
 
     rray ray;
@@ -383,10 +402,11 @@ bool testShadowPath(float3 *to, float3 *from, __global rsphere *spheres,
 
     float t                 = distance(*to, *from);
 
+    float opacity = 1.0f;
+
     /* Find closest intersection with spheres */
     for (uchar i = 0; i < spheres_num; i++) {
         rsphere sphere = spheres[i];
-        if (sphere.material.transperent) {continue;}
         
         float _t;
         bool _intersect = intersect_sphere(&ray, &sphere.origin, sphere.radius, &_t);
@@ -394,7 +414,13 @@ bool testShadowPath(float3 *to, float3 *from, __global rsphere *spheres,
             continue;
         }
 
-        return true;
+        /* If transperent material just let a fraction of light to pass */ 
+        if (sphere.material.transperent) {
+            opacity *= TRANSPERENT_THROUGH;
+            continue;
+        }
+
+        return 0.0f;
     }
 
     /* Find closest intersection with planes */
@@ -409,10 +435,10 @@ bool testShadowPath(float3 *to, float3 *from, __global rsphere *spheres,
         
         t = _t;
 
-        return true;
+        return 0.0f;
     }
 
-    return false;
+    return opacity;
 }
 
 #endif

@@ -6,8 +6,8 @@
 /* N value for the air surrounding */
 #define DEFAULT_N 1.0f
 
-#define MAX_DEPTH 10
-#define MAX_SOFT_SHADOWS 5
+#define MAX_DEPTH 15
+#define MAX_SOFT_SHADOWS 2
 
 
 
@@ -45,7 +45,10 @@ __kernel void raytracer(__global rray* rays,
             rmaterial material;
 
             float3 light_color;
-            if (findLightIntersection(&ray_stack[stack_size - 1],lights, light_num, &light_color)) {
+            if (findLightIntersection(&ray_stack[stack_size - 1],
+                                      lights, spheres, planes,
+                                      light_num, spheres_num, planes_num, 
+                                      &light_color)) {
                 ray_stack[stack_size - 1].rgb += f_stack[stack_size-1]*light_color;
                 break;
             }
@@ -85,7 +88,7 @@ __kernel void raytracer(__global rray* rays,
                 rlight light = lights[i];
 
                 /* Amount of soft shadows not blocked by objects */
-                uint soft_shadows = 0;
+                float soft_shadows = 0.0f;
 
                 /* Main soft shadow through light center point */
                 float3 shadow_dir = normalize(light.origin-intersection);
@@ -102,7 +105,7 @@ __kernel void raytracer(__global rray* rays,
 
                     float3 sample = light.origin+(float3){x,y,z};
 
-                    soft_shadows += !testShadowPath(&sample, &intersection, 
+                    soft_shadows += testShadowPath(&sample, &intersection, 
                                             spheres, planes, spheres_num, planes_num);
                 }
 

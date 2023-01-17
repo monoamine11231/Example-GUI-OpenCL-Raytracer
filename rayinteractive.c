@@ -178,6 +178,8 @@ int main() {
 
     cl_wrap_load_global_data(&wrap, 1, 10, NULL, buffer_size, CL_MEM_WRITE_ONLY);
 
+    struct mfb_timer* timer = mfb_timer_create();
+
     while (mfb_wait_sync(window)) {
         int state;
 
@@ -187,12 +189,14 @@ int main() {
         cl_wrap_output(&wrap, WIDTH*HEIGHT, buffer_size, 1, 1, 10, buffer);
 
         state = mfb_update_ex(window, buffer, WIDTH, HEIGHT);
-        
+
         if (state < 0) {
             window = NULL;
             break;
         }
     }
+
+    mfb_timer_destroy(timer);
 
     /* Release the OpenCL program */
     cl_wrap_release(&wrap);
